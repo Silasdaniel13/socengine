@@ -11,8 +11,15 @@
 
 #sourcelist=./sources.list
 #conf=./uvdesk.conf
-mkdir /var/Zeek/
-touch /var/Zeek/log.txt
+
+install_date=$(date --rfc-3339=date)
+logfile=/opt/socenngine/logs/zeek_$creating_date.log
+install_home=/opt/socenngine/ZEEK/
+touch $logfile
+mkdir $install_home
+debian_version=Debian_10
+
+
 
 
 
@@ -46,7 +53,6 @@ echo 'deb http://download.opensuse.org/repositories/security:/zeek/Debian_10/ /'
 curl -fsSL https://download.opensuse.org/repositories/security:zeek/Debian_10/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg > /dev/null
 sudo apt update
 sudo apt install zeek-lts
-cd /opt/zeek/bin
-./zeekctl install
+/opt/zeek/bin/zeekctl install
 
 
