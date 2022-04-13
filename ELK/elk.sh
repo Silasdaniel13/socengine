@@ -19,8 +19,13 @@
 #PORT=${2:-443}
 #sourcelist=./sources.list
 #conf=./uvdesk.conf
-mkdir /var/ELK/
-touch /var/ELK/log.txt
+
+install_date=$(date --rfc-3339=date)
+logfile=/opt/socenngine/logs/elk_$creating_date.log
+install_home=/opt/socenngine/ELK/
+touch $logfile
+mkdir $install_home
+jdk_version=openjdk-11-jdk
 
 ####################################################
 #              Checking Update                     #
@@ -41,7 +46,7 @@ cat <<BAN
 ####################################################
 BAN
 
-if sudo apt install -y default-jdk;
+if sudo apt install -y $jdk_version;
 then
   
   echo JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64/" >> /etc/environment
@@ -66,9 +71,13 @@ cat <<BAN
 ####################################################
 BAN
 
-if curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.14.0-amd64.deb;
+if wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add - ;
 then
-  sudo dpkg -i elasticsearch-7.14.0-amd64.deb
+  sudo apt-get install apt-transport-https
+  echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-7.x.list
+  sudo apt-get update -y 
+  sudo apt-get install  -y elasticsearch
+  
   sudo mkdir /etc/systemd/system/elasticsearch.service.d
   echo -e "[Service]\nTimeoutStartSec=250" | sudo tee /etc/systemd/system/elasticsearch.service.d/startup-timeout.conf 
   sudo systemctl daemon-reload
@@ -94,12 +103,19 @@ cat <<BAN
 #               Installing Kibana                  #
 ####################################################
 BAN
-apt-get install -y kibana
-systemctl enable kibana
-echo "***********************************Kibana successfully Installed******************************"
-echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
-echo "   ****************Kibana successfully Installed*********************" >> /var/UVDESK/log.txt
-
+if sudo apt-get install -y kibana
+then
+ 
+  systemctl enable kibana
+  sudo systemctl start kibana 
+  echo "***********************************Kibana successfully Installed******************************"
+  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
+  echo "   ****************Kibana successfully Installed*********************" >> /var/UVDESK/log.txt
+else
+  echo "[ERROR]: Installing Kibana server FAILED" 
+  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
+  echo "  [ERROR]: Installing Kibana server FAILED " >> /var/ELK/log.txt  
+fi
 
 
 ####################################################
@@ -112,13 +128,7 @@ cat <<BAN
 ####################################################
 BAN
 
-wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
 
-sudo apt-get install apt-transport-https
-
-echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-7.x.list
-
-sudo apt-get update 
 if sudo apt-get install -y logstash;
 then
 
