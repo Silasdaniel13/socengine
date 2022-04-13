@@ -13,18 +13,15 @@
 #PORT=${2:-443}
 #sourcelist=./sources.list
 #conf=./uvdesk.conf
-mkdir /var/GRR/
-touch /var/GRR/log.txt
+install_home=/opt/socengine/GRR
+install_date=$(date --rfc-3339=date)
+logfile=/opt/socenngine/logs/grr_$creating_date.log
+mkdir $install_home
+touch $logfile
 
-
-####################################################
-#              Checking the source list            #
-####################################################
-  
-  echo "deb http://security.debian.org/debian-security jessie/updates main" >> /etc/apt/sources.list
-  apt-get update
-  apt-get upgrade -y
-
+libssl_version=1.0.0
+grr_source="https://storage.googleapis.com/releases.grr-response.com/grr-server_3.2.1-1_amd64.deb"
+grr_deb_file=grr-server_3.2.1-1_amd64.deb
 
 ####################################################
 #            Installing GRR Server                 #
@@ -35,9 +32,14 @@ cat <<BAN
 #################################################### 
 #          Installing GRR SERVER                   #
 ####################################################
-BAN
-apt-get install -y libssl1.0.0 
-wget https://storage.googleapis.com/releases.grr-response.com/grr-server_3.2.1-1_amd64.deb
 
-sudo apt install -y ./grr-server_3.2.1-1_amd64.deb
+YOU WILL BE REQUIRED TO PROVIDE MySQL DATABASE CONNECTION INFORMATION
+
+Just Follow the instruction
+************************************************************************** 
+BAN
+apt-get install -y libssl$libssl_version
+wget -P $install_home $grr_source
+sudo apt install -y $install_home/$grr_deb_file
+
 
