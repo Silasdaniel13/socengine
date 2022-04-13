@@ -16,25 +16,29 @@
 #VERSION=0.0.1
 #HOST=$1
 #PORT=${2:-443}
-sourcelist=./sources.list
+#sourcelist=./sources.list
 conf=./uvdesk.conf
-mkdir /var/UVDESK/
-touch /var/UVDESK/log.txt
+install_date=$(date --rfc-3339=date)
+logfile=/opt/socenngine/logs/uvdesk_$creating_date.log
+install_home=/opt/socenngine/UVDESK/
+touch $logfile
+mkdir $install_home
+php_version=php8.0
 
 ####################################################
 #              Checking the source list            #
 ####################################################
   
-if test -f "$sourcelist";
-then 
+#if test -f "$sourcelist";
+#then 
 #  cat ./sources.list >> /etc/apt/sources.list
-  apt-get update
-  apt-get upgrade -y
+#  apt-get update
+#  apt-get upgrade -y
 
-else
-  echo "[ERROR]: Source file missing in the script directory" 
-  exit 0 
-fi
+#else
+#  echo "[ERROR]: Source file missing in the script directory" 
+#  exit 0 
+#fi
 
 ####################################################
 #            Installing Apache2 Server             #
@@ -50,17 +54,18 @@ BAN
 if apt-get install -y apache2;
 then
   systemctl stop apache2.service
-  systemctl start apache2.service
   systemctl enable apache2.service
+  systemctl start apache2.service
+  
 
   echo "***********************************Apache Server Installed successfully******************************"
-  echo $(date --rfc-3339=seconds) > /var/UVDESK/log.txt
-  echo "   ****************Apache Server Installed successfully*********************" >> /var/UVDESK/log.txt
+  echo $(date --rfc-3339=seconds) > $logfile
+  echo "   ****************Apache Server Installed successfully*********************" >> $logfile
 
 else
   echo "[ERROR]:  Installing Apache 2 server FAILED " 
-  echo $(date --rfc-3339=seconds) >> /var/UVDESK/log.txt
-  echo "  [ERROR]: Installing Apache 2 server FAILED " >> /var/UVDESK/log.txt  
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "  [ERROR]: Installing Apache 2 server FAILED " >> $logfile  
 fi  
 ####################################################
 #               Installing Maria DB                #
@@ -75,12 +80,13 @@ BAN
 if apt install -y mariadb-server mariadb-client;
 then
   systemctl stop mariadb.service
-  systemctl start mariadb.service
   systemctl enable mariadb.service
+  systemctl start mariadb.service
+  
   mysql_secure_installation
   echo "***********************************Maria DB Server Installed successfully******************************"
-  echo $(date --rfc-3339=seconds) >> /var/UVDESK/log.txt
-  echo "   ****************Maria DB Server Installed successfully*********************" >> /var/UVDESK/log.txt
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "   ****************Maria DB Server Installed successfully*********************" >> $logfile
   systemctl restart mariadb.service
   echo "***********************************Creating UVDESK DATABASE******************************"
   echo " Please type in below the root password of MySQL"
@@ -115,39 +121,39 @@ then
 
  
   echo "***********************************UVDESK Database and user successfully created******************************"
-  echo $(date --rfc-3339=seconds) >> /var/UVDESK/log.txt
-  echo "   ****************UVDESK Database and user successfully created*********************" >> /var/UVDESK/log.txt
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "   ****************UVDESK Database and user successfully created*********************" >> $logfile
 else
   echo "[ERROR]: Installing Maria DB server FAILED" 
-  echo $(date --rfc-3339=seconds) >> /var/UVDESK/log.txt
-  echo "  [ERROR]: Installing Maria DB server FAILED " >> /var/UVDESK/log.txt  
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "  [ERROR]: Installing Maria DB server FAILED " >> $logfile 
 fi
 
 
 
 ####################################################
-#               Installing PHP 7.4                 #
+#               Installing PHP                     #
 ####################################################
 
 cat <<BAN  
 #################################################### 
-#          Installing PHP 7.4                      #
+#          Installing PHP                          #
 ####################################################
 BAN
 
 apt -y install lsb-release apt-transport-https ca-certificates
-wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg #Adding the Repo for PHP
-echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/php.list
+echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/sury-php.list  ####Add the PHP packages APT repository to your Debian server
+wget  -P $install_home /opt/socengine/-qO - https://packages.sury.org/php/apt.gpg | sudo apt-key add - ####   Import repository key
 
 apt update                        # Update the source list
 
-apt install -y php7.4 
-apt install -y libapache2-mod-php7.4 php7.4-common php7.4-gmp php7.4-curl php7.4-intl php7.4-mbstring php7.4-xmlrpc php7.4-mysql php7.4-gd php7.4-xml php7.4-imap php7.4-mailparse php7.4-cli php7.4-zip
+apt install -y $php_version
+apt install -y libapache2-mod-$php_version $php_version-common $php_version-gmp $php_version-curl $php_version-intl $php_version-mbstring $php_version-xmlrpc $php_version-mysql $php_version-gd $php_version-xml $php_version-imap $php_version-mailparse $php_version-cli $php_version-zip
 
 systemctl restart apache2.service
-echo "***********************************PHP 7.4 successfully Installed******************************"
-echo $(date --rfc-3339=seconds) >> /var/UVDESK/log.txt
-echo "   ****************PHP 7.4 successfully Installed*********************" >> /var/UVDESK/log.txt
+echo "***********************************PHP successfully Installed******************************"
+echo $(date --rfc-3339=seconds) >> $logfile
+echo "   ****************PHP successfully Installed*********************" >> $logfile
 
 
 ####################################################
@@ -162,7 +168,7 @@ BAN
 
 
 apt install -y curl git
-curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+wget  https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 mkdir /var/www/uvdesk
 chown $USER:$USER /var/www/uvdesk
 composer clear-cache
@@ -180,6 +186,8 @@ then
      
 else
   echo "[ERROR]: Config file (uvdesk.conf) is missing in the script directory" 
+   echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[ERROR]: Config file (uvdesk.conf) is missing in the script directory"  >> $logfile 
   exit 0 
 fi
 
