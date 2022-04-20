@@ -13,8 +13,8 @@
 #conf=./uvdesk.conf
 
 install_date=$(date --rfc-3339=date)
-logfile=/opt/socenngine/logs/zeek_$creating_date.log
-install_home=/opt/socenngine/ZEEK/
+logfile=/opt/socengine/logs/zeek_$creating_date.log
+install_home=/opt/socengine/ZEEK/
 post_install=./postinstall_zeek.sh
 
 if (test -d $install_home);
