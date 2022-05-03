@@ -19,28 +19,38 @@
 #PORT=${2:-443}
 #sourcelist=./sources.list
 #conf=./uvdesk.conf
-#mkdir /var/ELK/
+mkdir /var/ELK/
 touch /var/ELK/credentials.txt
 install_dir=$(pwd)
+echo $install_dir
 instance_file=$install_dir/instance.yml
-temp=~/tmp/
+temp=/home/olemboreelrichmond/tmp
+echo $temp
+host="http://elastic-siem:9200"
+result_curl=$(curl http://elastic-siem:9200 | grep tagline | wc -l )
+
+apt-get  install zip 
 
 ####################################################
 #          Checking Elasticsearch service          #
 ####################################################
-if [$(curl http://127.0.0.1:9200 | grep tagline | wc -l ) == 1 ]
+if [[ "$result_curl" == "1" ]];
 then
   ES_HOME=/usr/share/elasticsearch
   ES_PATH_CONF=/etc/elasticsearch
-  mkdir $temp
+  sudo mkdir $temp
   cd $temp
   mkdir cert_blog
   cd cert_blog
   cp $instance_file  ./
+  pwd  
+  ls ./
+
 else
   echo "[SETUP_ERROR]:  Elasticsearch is not installed or not running on this server " 
   echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
   echo "[SETUP_ERROR]:  Elasticsearch is not installed or not running on this server "  >> /var/ELK/log.txt  
+  exit 0
 fi
 
 ####################################################
@@ -57,8 +67,8 @@ BAN
 ####################Generating and installing Certificate
 
 cd $ES_HOME
-bin/elasticsearch-certutil cert --keep-ca-key --pem --in ~/tmp/cert_blog/instance.yml --out ~/tmp/cert_blog/certs.zip
-cd ~/tmp/cert_blog
+bin/elasticsearch-certutil cert --keep-ca-key --pem --in $temp/cert_blog/instance.yml --out $temp/cert_blog/certs.zip
+cd $temp/cert_blog
 unzip certs.zip -d ./certs
 
 
@@ -66,7 +76,7 @@ unzip certs.zip -d ./certs
 
 cd $ES_PATH_CONF
 mkdir certs
-cp ~/tmp/cert_blog/certs/ca/ca* ~/tmp/cert_blog/certs/elastic/* certs
+cp $temp/cert_blog/certs/ca/ca* $temp/cert_blog/certs/elastic/* certs
 
 #########Configure elasticsearch.yml
 mv /etc/elasticsearch/elasticsearch.yml elasticsearch.yml_backup
@@ -86,13 +96,13 @@ cat <<BAN
 #----------------------
 BAN
 
-bin/elasticsearch-setup-passwords auto -u 'https://srvsiem.local:9200' | tee /var/ELK/credentials.txt
+bin/elasticsearch-setup-passwords auto -u 'https://elastic-siem:9200' | tee $install_dir/credentials.txt
 
 
 
  
 ###########################Access _cat/nodes API via HTTPS
- curl --cacert ~/tmp/cert_blog/certs/ca/ca.crt -u elastic 'https://srvsiem:9200/_cat/nodes?v'
+ curl --cacert $temp/cert_blog/certs/ca/ca.crt -u elastic 'https://elastic-siem:9200/_cat/nodes?v'
  
  
  
@@ -101,14 +111,14 @@ bin/elasticsearch-setup-passwords auto -u 'https://srvsiem.local:9200' | tee /va
  
  KIBANA_HOME=/usr/share/kibana
  KIBANA_PATH_CONFIG=/etc/kibana
- cd ~/tmp/cert_blog/certs
+ cd $temp/cert_blog/certs
  mkdir /etc/kibana/config/
   mkdir /etc/kibana/config/certs/
-  cp ~/tmp/cert_blog/certs/* /etc/kibana/config/certs/
+  cp -r $temp/cert_blog/certs/* /etc/kibana/config/certs/
   mv /etc/kibana/kibana.yml /etc/kibana/kibana.yml_backup
-  cp ./kibana.yml /etc/kibana/kibana.yml
+  cp $install_dir/kibana.yml /etc/kibana/kibana.yml
 
- Pass_kibana=$(cat /var/ELK/credentials.txt | grep "PASSWORD kibana " |  awk -F' ' '{print $4}')
+ Pass_kibana=$(cat $install_dir/credentials.txt | grep "PASSWORD kibana " |  awk -F' ' '{print $4}')
  echo "elasticsearch.password: "$Pass_kibana"" >>
  
  /usr/share/kibana/bin/kibana-encryption-keys generate | tail -n4 >> /etc/kibana/kibana.yml
@@ -120,59 +130,6 @@ bin/elasticsearch-setup-passwords auto -u 'https://srvsiem.local:9200' | tee /va
  
  
  
- 
- 
-
-
-
-####################################################
-#               Installing Logstash                #
-####################################################
-
-cat <<BAN  
-#################################################### 
-#          Installing Logstash                     #
-####################################################
-BAN
-
-wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
-
-sudo apt-get install apt-transport-https
-
-echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-7.x.list
-
-sudo apt-get update 
-if sudo apt-get install -y logstash;
-then
-
-  sudo systemctl start logstash.service
-  echo "***********************************Logstash successfully Installed******************************"
-  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
-  echo "   ****************Logstash successfully Installed*********************" >> /var/UVDESK/log.txt
-else
-  echo "[ERROR]: Installing Logstash server FAILED" 
-  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
-  echo "  [ERROR]: Installing Logstash server FAILED " >> /var/ELK/log.txt  
-fi
-
-
-cat <<BAN  
-#################################################### 
-#            Installing  Metricbeat                #
-####################################################
-BAN
-
-
-apt-get install -y metricbeat
-
-
-######################To set up the system module and start collecting system metrics
-
-sudo metricbeat modules enable system
-
-sudo metricbeat setup -e
-
-sudo service metricbeat start
 
 cat <<FIN  
 #################################################### 
@@ -184,7 +141,6 @@ FIN
 
 
 exit 0
-
 
 
 

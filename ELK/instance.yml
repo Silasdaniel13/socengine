@@ -1,7 +1,7 @@
 instances:
   - name: 'elastic'
-    dns: [ 'srvsiem.local' ]
+    dns: [ 'openvas-siem' ]
   - name: 'logstash'
-    dns: [ 'srvsiem.local' ]
+    dns: [ 'openvas-siem' ]
   - name: 'my-kibana'
-    dns: [ 'srvsiem.local' ]
+    dns: [ 'openvas-siem' ]

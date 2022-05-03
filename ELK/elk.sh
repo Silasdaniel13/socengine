@@ -53,13 +53,13 @@ then
   source /etc/environment
 
   echo "***********************************Open Jdk Installed successfully******************************"
-  echo $(date --rfc-3339=seconds) > /var/ELK/log.txt
-  echo "   ****************Open Jdk Installed successfully*********************" >> /var/ELK/log.txt
+  echo $(date --rfc-3339=seconds) > $logfile
+  echo "   ****************Open Jdk Installed successfully*********************" >> $logfile
 
 else
   echo "[ERROR]:  Installing Open Jdk FAILED " 
-  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
-  echo "  [ERROR]: Installing Open Jdk FAILED " >> /var/ELK/log.txt  
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "  [ERROR]: Installing Open Jdk FAILED " >> $logfile  
 fi  
 ####################################################
 #        Installing  Elasticsearch 7.14.0          #
@@ -79,17 +79,17 @@ then
   sudo apt-get install  -y elasticsearch
   
   sudo mkdir /etc/systemd/system/elasticsearch.service.d
-  echo -e "[Service]\nTimeoutStartSec=250" | sudo tee /etc/systemd/system/elasticsearch.service.d/startup-timeout.conf 
+  echo -e "[Service]\nTimeoutStartSec=400" | sudo tee /etc/systemd/system/elasticsearch.service.d/startup-timeout.conf 
   sudo systemctl daemon-reload
   sudo systemctl enable elasticsearch
   sudo systemctl start elasticsearch
   echo "***********************************Elasticsearch Installed successfully******************************"
-  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
-  echo "   ****************Elasticsearch Installed successfully*********************" >> /var/ELK/log.txt
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "   ****************Elasticsearch Installed successfully*********************" >> $logfile
 else
   echo "[ERROR]: Installing Elasticsearch server FAILED" 
-  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
-  echo "  [ERROR]: Installing Elasticsearch server FAILED " >> /var/ELK/log.txt  
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "  [ERROR]: Installing Elasticsearch server FAILED " >> $logfile  
 fi
 
 
@@ -109,12 +109,12 @@ then
   systemctl enable kibana
   sudo systemctl start kibana 
   echo "***********************************Kibana successfully Installed******************************"
-  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
-  echo "   ****************Kibana successfully Installed*********************" >> /var/UVDESK/log.txt
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "   ****************Kibana successfully Installed*********************" >> $logfile
 else
   echo "[ERROR]: Installing Kibana server FAILED" 
-  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
-  echo "  [ERROR]: Installing Kibana server FAILED " >> /var/ELK/log.txt  
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "  [ERROR]: Installing Kibana server FAILED " >> $logfile  
 fi
 
 
@@ -134,12 +134,12 @@ then
 
   sudo systemctl start logstash.service
   echo "***********************************Logstash successfully Installed******************************"
-  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
-  echo "   ****************Logstash successfully Installed*********************" >> /var/UVDESK/log.txt
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "   ****************Logstash successfully Installed*********************" >> $logfile
 else
   echo "[ERROR]: Installing Logstash server FAILED" 
-  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
-  echo "  [ERROR]: Installing Logstash server FAILED " >> /var/ELK/log.txt  
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "  [ERROR]: Installing Logstash server FAILED " >> $logfile  
 fi
 
 
@@ -171,7 +171,6 @@ FIN
 
 
 exit 0
-
 
 
 
