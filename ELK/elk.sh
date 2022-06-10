@@ -21,8 +21,8 @@
 #conf=./uvdesk.conf
 
 install_date=$(date --rfc-3339=date)
-logfile=/opt/socenngine/logs/elk_$creating_date.log
-install_home=/opt/socenngine/ELK/
+logfile=/opt/socengine/logs/elk_$install_date.log
+install_home=/opt/socengine/ELK/
 touch $logfile
 mkdir $install_home
 jdk_version=openjdk-11-jdk
@@ -60,6 +60,7 @@ else
   echo "[ERROR]:  Installing Open Jdk FAILED " 
   echo $(date --rfc-3339=seconds) >> $logfile
   echo "  [ERROR]: Installing Open Jdk FAILED " >> $logfile  
+  exit 0
 fi  
 ####################################################
 #        Installing  Elasticsearch 7.14.0          #
@@ -90,6 +91,7 @@ else
   echo "[ERROR]: Installing Elasticsearch server FAILED" 
   echo $(date --rfc-3339=seconds) >> $logfile
   echo "  [ERROR]: Installing Elasticsearch server FAILED " >> $logfile  
+  exit 0
 fi
 
 
@@ -114,7 +116,8 @@ then
 else
   echo "[ERROR]: Installing Kibana server FAILED" 
   echo $(date --rfc-3339=seconds) >> $logfile
-  echo "  [ERROR]: Installing Kibana server FAILED " >> $logfile  
+  echo "  [ERROR]: Installing Kibana server FAILED " >> $logfile 
+  exit 0 
 fi
 
 
@@ -140,6 +143,7 @@ else
   echo "[ERROR]: Installing Logstash server FAILED" 
   echo $(date --rfc-3339=seconds) >> $logfile
   echo "  [ERROR]: Installing Logstash server FAILED " >> $logfile  
+  exit 0
 fi
 
 

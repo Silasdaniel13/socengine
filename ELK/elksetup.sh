@@ -19,17 +19,31 @@
 #PORT=${2:-443}
 #sourcelist=./sources.list
 #conf=./uvdesk.conf
-mkdir /var/ELK/
-touch /var/ELK/credentials.txt
+install_date=$(date --rfc-3339=date)
+logfile=/opt/socengine/logs/elksetup_$install_date.log
+touch $logfile
+install_home=/opt/socengine/ELK
+credentials=$install_home/credentials.txt
+if !(touch $credentials);
+then
+  echo "[ERROR]:  ELK Credentials file creating  FAILED " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "  [ERROR]: ELK Credentials file creating FAILED" >> $logfile  
+  exit 0
+else
+  echo "[OK]:  ELK Credentials file creating  Successful " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "  [OK]: ELK Credentials file creating Successful" >> $logfile  
+fi  
+
 install_dir=$(pwd)
-echo $install_dir
+echo "The installing directory is: " $install_dir
 instance_file=$install_dir/instance.yml
-temp=/home/olemboreelrichmond/tmp
-echo $temp
+temp=$install_home/tmp
+echo "The temp directory is: " $temp
 host="http://elastic-siem:9200"
 result_curl=$(curl http://elastic-siem:9200 | grep tagline | wc -l )
-
-apt-get  install zip 
+ 
 
 ####################################################
 #          Checking Elasticsearch service          #
@@ -48,8 +62,8 @@ then
 
 else
   echo "[SETUP_ERROR]:  Elasticsearch is not installed or not running on this server " 
-  echo $(date --rfc-3339=seconds) >> /var/ELK/log.txt
-  echo "[SETUP_ERROR]:  Elasticsearch is not installed or not running on this server "  >> /var/ELK/log.txt  
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_ERROR]:  Elasticsearch is not installed or not running on this server "  >> $logfile  
   exit 0
 fi
 
@@ -67,23 +81,77 @@ BAN
 ####################Generating and installing Certificate
 
 cd $ES_HOME
-bin/elasticsearch-certutil cert --keep-ca-key --pem --in $temp/cert_blog/instance.yml --out $temp/cert_blog/certs.zip
+if !(bin/elasticsearch-certutil cert --keep-ca-key --pem --in $temp/cert_blog/instance.yml --out $temp/cert_blog/certs.zip);
+then
+  echo "[SETUP_ERROR]:  Certificates generating FAILED  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_ERROR]:  Certificates generating FAILED "  >> $logfile  
+  exit 0
+else
+  echo "[SETUP_OK]:  Certificates generating Successful  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_OK]:  Certificates generating Successful "  >> $logfile  
+  
+fi
 cd $temp/cert_blog
-unzip certs.zip -d ./certs
+if (unzip certs.zip -d ./certs);
+then
+  echo "[SETUP_OK]:  Certificates deployment Successful  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_OK]:  Certificates deployment Successful "  >> $logfile  
+else 
+  echo "[SETUP_ERROR]:  Certificates deployment FAILED " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_ERROR]:  Certificates generating FAILED "  >> $logfile 
+  exit 0   
+fi
 
 
 ##############Elasticsearch TLS setup
 
-cd $ES_PATH_CONF
+if (cd $ES_PATH_CONF);
+then
+  echo "[SETUP_OK]:  Accessing to ES Configuration Directory Successful  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_OK]:  Accessing to ES Configuration Directory Successful "  >> $logfile
+else
+  echo "[SETUP_ERROR]:  Accessing to ES Configuration Directory FAILED  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_ERROR]:  Accessing to ES Configuration Directory FAILED "  >> $logfile
+  exit 0
+fi
+
 mkdir certs
-cp $temp/cert_blog/certs/ca/ca* $temp/cert_blog/certs/elastic/* certs
+
+if (cp $temp/cert_blog/certs/ca/ca* $temp/cert_blog/certs/elastic/* certs);
+then
+  echo "[SETUP_OK]:  Certificate files copying Successful  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_OK]:  Certificate files copying Successful "  >> $logfile
+else
+  echo "[SETUP_ERROR]:  Certificate files copying FAILED  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_ERROR]:  Certificate files copying FAILED "  >> $logfile
+  exit 0
+fi
 
 #########Configure elasticsearch.yml
 mv /etc/elasticsearch/elasticsearch.yml elasticsearch.yml_backup
-cp $install_dir/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
-grep '\[elastic\] started' /var/log/elasticsearch/elasticsearch.log
+if (cp $install_dir/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml);
+then
+  grep '\[elastic\] started' /var/log/elasticsearch/elasticsearch.log
 
-systemctl restart elasticsearch
+  systemctl restart elasticsearch
+  echo "[SETUP_OK]:  elasticsearch.yml file editing and configuring Successful  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_OK]:  elasticsearch.yml file editing and configuring Successful "  >> $logfile
+
+else
+  echo "[SETUP_ERROR]:  elasticsearch.yml file editing and configuring FAILED  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_ERROR]:  elasticsearch.yml file editing and configuring FAILED "  >> $logfile
+  exit 0
+fi
 
 ######################Setting built-in user password
 
@@ -96,13 +164,29 @@ cat <<BAN
 #----------------------
 BAN
 
-bin/elasticsearch-setup-passwords auto -u 'https://elastic-siem:9200' | tee $install_dir/credentials.txt
+if (bin/elasticsearch-setup-passwords auto -u 'https://elastic-siem:9200' | tee $credentials );
+then
+  echo "[SETUP_OK]:  Elasticsearch Users Credentials  file creating Successful  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_OK]:  Elasticsearch Users Credentials  file creating Successful "  >> $logfile
+else
 
+fi
 
 
  
 ###########################Access _cat/nodes API via HTTPS
- curl --cacert $temp/cert_blog/certs/ca/ca.crt -u elastic 'https://elastic-siem:9200/_cat/nodes?v'
+ if (curl --cacert $temp/cert_blog/certs/ca/ca.crt -u elastic 'https://elastic-siem:9200/_cat/nodes?v');
+ then
+  echo "[SETUP_OK]:  Connecting to elasticsearch node Successful  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_OK]:  Connecting to elasticsearch node Successful "  >> $logfile
+ else 
+  echo "[SETUP_ERROR]:  Can not connect to elasticsearch node  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_ERROR]:  Can not connect to elasticsearch node "  >> $logfile
+  exit 0
+ fi
  
  
  
@@ -114,22 +198,43 @@ bin/elasticsearch-setup-passwords auto -u 'https://elastic-siem:9200' | tee $ins
  cd $temp/cert_blog/certs
  mkdir /etc/kibana/config/
   mkdir /etc/kibana/config/certs/
-  cp -r $temp/cert_blog/certs/* /etc/kibana/config/certs/
-  mv /etc/kibana/kibana.yml /etc/kibana/kibana.yml_backup
-  cp $install_dir/kibana.yml /etc/kibana/kibana.yml
+  
+  if (cp -r $temp/cert_blog/certs/* /etc/kibana/config/certs/);
+  then
+    echo "[SETUP_OK]:  Kibana Certificate files copied to Kibana Config directory Successfuly  " 
+    echo $(date --rfc-3339=seconds) >> $logfile
+    echo "[SETUP_OK]:  Kibana Certificate files copied to Kibana Config directory Successfuly "  >> $logfile
+  else
+    echo "[SETUP_ERROR]:  Kibana Certificate files copy to Kibana Config directory Failed  " 
+    echo $(date --rfc-3339=seconds) >> $logfile
+    echo "[SETUP_ERROR]:  Kibana Certificate files copy to Kibana Config directory Failed "  >> $logfile
+    exit 0
+  fi
 
- Pass_kibana=$(cat $install_dir/credentials.txt | grep "PASSWORD kibana " |  awk -F' ' '{print $4}')
- echo "elasticsearch.password: "$Pass_kibana"" >>
+  mv /etc/kibana/kibana.yml /etc/kibana/kibana.yml_backup
+  if (cp $install_dir/kibana.yml /etc/kibana/kibana.yml);
+  then
+    echo "[SETUP_OK]:  Kibana configuration file successfully set and edited   " 
+    echo $(date --rfc-3339=seconds) >> $logfile
+    echo "[SETUP_OK]:  Kibana configuration file successfully set and edited "  >> $logfile
+
+  else
+    echo "[SETUP_ERROR]:  Kibana configuration file unsuccessfully set and edited  " 
+    echo $(date --rfc-3339=seconds) >> $logfile
+    echo "[SETUP_ERROR]:  Kibana configuration file unsuccessfully set and edited "  >> $logfile
+    exit 0
+
+  fi
+
+ Pass_kibana=$(cat $credentials | grep "PASSWORD kibana " |  awk -F' ' '{print $4}')
+ echo "elasticsearch.password: "$Pass_kibana"" >> /etc/kibana/kibana.yml
  
  /usr/share/kibana/bin/kibana-encryption-keys generate | tail -n4 >> /etc/kibana/kibana.yml
  
  
- systemctl restart kibana
- 
- 
- 
- 
- 
+ if (systemctl restart kibana);
+ then
+  
 
 cat <<FIN  
 #################################################### 
@@ -138,7 +243,16 @@ cat <<FIN
     
 ####################################################
 FIN
+ 
+    echo $(date --rfc-3339=seconds) >> $logfile
+    echo "[SETUP_OK]:  ELK HAVE BEEN SUCCESSFULLY SECURED "  >> $logfile
+else
+    echo "[SETUP_ERROR]:  ELK HAVE NOT BEEN SUCCESSFULLY SECURED  " 
+    echo $(date --rfc-3339=seconds) >> $logfile
+    echo "[SETUP_ERROR]:  ELK HAVE NOT BEEN SUCCESSFULLY SECURED "  >> $logfile
+    exit 0
 
+fi
 
 exit 0
 
