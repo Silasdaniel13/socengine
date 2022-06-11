@@ -15,7 +15,7 @@
 #conf=./uvdesk.conf
 install_home=/opt/socengine/GRR
 install_date=$(date --rfc-3339=date)
-logfile=/opt/socenngine/logs/grr_$creating_date.log
+logfile=/opt/socengine/logs/grr_$creating_date.log
 mkdir $install_home
 touch $logfile
 
@@ -32,8 +32,7 @@ grr_deb_file=grr-server_3.2.1-1_amd64.deb
 ####################################################
 #              Restarting GRR Server               #
 ####################################################
-
-
+systemctl restart grr-server
 
 
 
@@ -42,8 +41,52 @@ grr_deb_file=grr-server_3.2.1-1_amd64.deb
 #      Configuring Nginx to Run GRR UI behind HTTPS Proxy       #
 #################################################################
 
+apt install -y nginx
 
 
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/grr-server.key -out /etc/nginx/grr-server.crt
+
+
+chmod 644 /etc/nginx/grr-server.crt
+chmod 400 /etc/nginx/grr-server.key
+
+
+
+
+
+
+
+**************************************************************************
+server {
+
+    listen 443;
+    server_name grr-server.local;
+
+    ssl_certificate           /etc/nginx/grr-server.crt;
+    ssl_certificate_key       /etc/nginx/grr-server.key;
+
+    ssl on;
+    ssl_session_cache  builtin:1000  shared:SSL:10m;
+    ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4;
+    ssl_prefer_server_ciphers on;
+
+    access_log            /var/log/nginx/grr.access.log;
+
+    location / {
+
+    proxy_set_header        Host $host;
+    proxy_set_header        X-Real-IP $remote_addr;
+    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header        X-Forwarded-Proto $scheme;
+
+     proxy_pass          http://localhost:8000;
+     proxy_read_timeout  180;
+
+     proxy_redirect      http://l:8000 https://grr-server.local;
+    }
+}
+***************************************************************
 
 
 

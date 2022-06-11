@@ -15,13 +15,15 @@
 #conf=./uvdesk.conf
 install_home=/opt/socengine/GRR
 install_date=$(date --rfc-3339=date)
-logfile=/opt/socenngine/logs/grr_$creating_date.log
+logfile=/opt/socengine/logs/grr_$creating_date.log
 mkdir $install_home
 touch $logfile
 
-libssl_version=1.0.0
-grr_source="https://storage.googleapis.com/releases.grr-response.com/grr-server_3.2.1-1_amd64.deb"
-grr_deb_file=grr-server_3.2.1-1_amd64.deb
+
+grr_source="https://storage.googleapis.com/releases.grr-response.com/grr-server_3.4.5-1_amd64.deb"
+
+
+grr_deb_file=grr-server_3.4.5-1_amd64.deb
 
 ####################################################
 #            Installing GRR Server                 #
