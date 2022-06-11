@@ -13,7 +13,7 @@
 #conf=./uvdesk.conf
 
 install_date=$(date --rfc-3339=date)
-logfile=/opt/socengine/logs/zeek_postinstall_$creating_date.log
+logfile=/opt/socengine/logs/zeek_postinstall_$install_date.log
 install_home=/opt/socengine/ZEEK/
 node_config_file=/opt/zeek/etc/node.cfg
 touch $logfile
@@ -52,7 +52,8 @@ echo "**************************************Zeek service stopped to edit the con
 
 
 
-if (sed -i 's/host=/host=$server_host_name/' $node_config_file);
+if (sed -i "s/^host=.*/host=$server_host_name/" $node_config_file);
+
 then
 	echo "**************************************Zeek hostname successfully updated*****************"
  
@@ -68,9 +69,7 @@ fi
 
 
 
-
-
-if (sed -i 's/interface=/interface=$server_interface/' $node_config_file);
+if (sed -i 's/^interface=.*/interface='"$server_interface"'/' $node_config_file);
 then
 	echo "**************************************Zeek server interface successfully updated*****************"
  
@@ -84,7 +83,19 @@ else
  echo "**************************************Zeek server interface unsuccessfully updated*****************" >> $logfile
 fi
 	
+if (/opt/zeek/bin/zeekctl start);
+then
 
+echo "**************************************Zeek service started successfullye*****************"
+ 
+ echo $(date --rfc-3339=seconds) >> $logfile
+ echo "**************************************Zeek service started successfullye*****************" >> $logfile
+else
+echo "**************************************Zeek service started successfullye*****************"
+ 
+ echo $(date --rfc-3339=seconds) >> $logfile
+ echo "**************************************Zeek service started successfullye*****************" >> $logfile
+ fi
 
 
 exit 0
