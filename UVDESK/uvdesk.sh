@@ -19,11 +19,12 @@
 #sourcelist=./sources.list
 conf=./uvdesk.conf
 install_date=$(date --rfc-3339=date)
-logfile=/opt/socenngine/logs/uvdesk_$creating_date.log
-install_home=/opt/socenngine/UVDESK/
+logfile=/opt/socengine/logs/uvdesk_$install_date.log
+install_home=/opt/socengine/UVDESK/
 touch $logfile
 mkdir $install_home
-php_version=php8.0
+php_version=php7.4
+compteur=0
 
 ####################################################
 #              Checking the source list            #
@@ -59,13 +60,14 @@ then
   
 
   echo "***********************************Apache Server Installed successfully******************************"
-  echo $(date --rfc-3339=seconds) > $logfile
-  echo "   ****************Apache Server Installed successfully*********************" >> $logfile
+  sudo echo $(date --rfc-3339=seconds) > $logfile
+  sudo echo "   ****************Apache Server Installed successfully*********************" >> $logfile
 
 else
   echo "[ERROR]:  Installing Apache 2 server FAILED " 
-  echo $(date --rfc-3339=seconds) >> $logfile
-  echo "  [ERROR]: Installing Apache 2 server FAILED " >> $logfile  
+  sudo echo $(date --rfc-3339=seconds) >> $logfile
+  sudo echo "  [ERROR]: Installing Apache 2 server FAILED " >> $logfile  
+  exit 0
 fi  
 ####################################################
 #               Installing Maria DB                #
@@ -83,7 +85,7 @@ then
   systemctl enable mariadb.service
   systemctl start mariadb.service
   
-  mysql_secure_installation
+  sudo mysql_secure_installation
   echo "***********************************Maria DB Server Installed successfully******************************"
   echo $(date --rfc-3339=seconds) >> $logfile
   echo "   ****************Maria DB Server Installed successfully*********************" >> $logfile
@@ -100,23 +102,94 @@ then
   then 
     comparer=0
   else 
-    until [[ $comparer == 0 ]]
+    until [[ $comparer == 0 ]] || [[ $compteur >= 5 ]]
     do
       echo "The password and the confirmation are not the same"
       echo " Please type again the password for the uvdesk user"
       read -s -p "Password: " uvdeskPw
       echo " Please again the password for the uvdesk user"
       read -s -p "Password: " PwConfirm
+      compteur=$((compteur+1))
       if [[ $uvdeskPw -eq $PwConfirm ]]
       then 
         comparer=0
       fi
     done
   fi  
-   mysql -u root -p$rootSqlPw -e "CREATE DATABASE uvdesk;" 
-   mysql -u root -p$rootSqlPw -e "CREATE USER 'uvdeskadmin'@'localhost' IDENTIFIED BY '$uvdeskPw';"
-   mysql -u root -p$rootSqlPw -e "GRANT ALL ON uvdesk.* TO 'uvdeskadmin'@'localhost' WITH GRANT OPTION;"
-   mysql -u root -p$rootSqlPw -e "FLUSH PRIVILEGES;"
+  
+  if (  mysql -u root -p$rootSqlPw -e "CREATE DATABASE uvdesk;");
+  then
+	  echo "**************************************UVDESK Database successfully created*****************"
+ 
+    echo $(date --rfc-3339=seconds) >> $logfile
+    echo "**************************************UVDESK Database successfully created*****************" >> $logfile 
+
+  else
+	  echo "**************************************UVDESK Database unsuccessfully created*****************"
+ 
+    echo $(date --rfc-3339=seconds) >> $logfile
+    echo "**************************************UVDESK Database unsuccessfully created*****************" >> $logfile 
+
+
+  fi 
+
+
+ if (  mysql -u root -p$rootSqlPw -e "CREATE USER 'uvdeskadmin'@'localhost' IDENTIFIED BY '$uvdeskPw';" )
+   
+then
+	echo "**************************************UVDESK User created for UVDESK Database successfully*****************"
+ 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "**************************************UVDESK User created for UVDESK Database successfully*****************" >> $logfile 
+
+else
+	echo "**************************************UVDESK User created for UVDESK Database unsuccessfully*****************"
+ 
+ echo $(date --rfc-3339=seconds) >> $logfile
+ echo "**************************************UVDESK User created for UVDESK Database unsuccessfully*****************" >> $logfile 
+
+
+fi 
+  
+ 
+ if (  mysql -u root -p$rootSqlPw -e "GRANT ALL ON uvdesk.* TO 'uvdeskadmin'@'localhost' WITH GRANT OPTION;" )
+   
+then
+	echo "**************************************Privileges granted to UVDESK Database successfully*****************"
+ 
+ echo $(date --rfc-3339=seconds) >> $logfile
+ echo "**************************************Privileges granted to UVDESK Database successfully*****************" >> $logfile 
+
+else
+	echo "**************************************Privileges granted to UVDESK Database unsuccessfully*****************"
+ 
+ echo $(date --rfc-3339=seconds) >> $logfile
+ echo "**************************************Privileges granted to UVDESK Database unsuccessfully*****************" >> $logfile 
+
+
+fi 
+  
+ 
+  
+  
+  
+if  ( mysql -u root -p$rootSqlPw -e "FLUSH PRIVILEGES;" )
+  
+then
+	echo "**************************************Privileges flush on UVDESK Database successfully*****************"
+ 
+ echo $(date --rfc-3339=seconds) >> $logfile
+ echo "**************************************Privileges flush on UVDESK Database successfully*****************" >> $logfile 
+
+else
+	echo "**************************************Privileges flush on UVDESK Database unsuccessfully*****************"
+ 
+ echo $(date --rfc-3339=seconds) >> $logfile
+ echo "**************************************Privileges flush on UVDESK Database unsuccessfully*****************" >> $logfile 
+
+
+fi 
+  
 
 
  
@@ -143,7 +216,7 @@ BAN
 
 apt -y install lsb-release apt-transport-https ca-certificates
 echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/sury-php.list  ####Add the PHP packages APT repository to your Debian server
-wget  -P $install_home /opt/socengine/-qO - https://packages.sury.org/php/apt.gpg | sudo apt-key add - ####   Import repository key
+wget  -P $ /opt/socengine/-qO - https://packages.sury.org/php/apt.gpg | sudo apt-key add - ####   Import repository key
 
 apt update                        # Update the source list
 
@@ -167,14 +240,21 @@ cat <<BAN
 BAN
 
 
-apt install -y curl git
-wget  https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-mkdir /var/www/uvdesk
-chown $USER:$USER /var/www/uvdesk
-composer clear-cache
-composer create-project uvdesk/community-skeleton helpdesk-project
+#apt install -y curl git
+
+#wget  https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+sudo mkdir /var/www/uvdesk
+if test /var/www/uvdesk;
+then
+unzip -q helpdesk-project_V1_0_3.zip -d /var/www/uvdesk
+else
+ echo "[ERROR]: Directory "/var/www/uvdesk" is missing"
+fi
+#chown $USER:$USER /var/www/uvdesk
+#composer clear-cache
+#composer create-project uvdesk/community-skeleton helpdesk-project
 chown -R www-data:www-data /var/www/uvdesk/
-chmod -R 755 /var/www/uvdesk/
+chmod -R 777 /var/www/uvdesk/
 echo " 127.0.0.1       helpdesk.local" >> /etc/hosts
 
 if test -f "$conf";
