@@ -14,8 +14,8 @@
 #sourcelist=./sources.list
 #conf=./uvdesk.conf
 install_date=$(date --rfc-3339=date)
-logfile=/opt/socenngine/logs/suricata_$creating_date.log
-install_home=/opt/socenngine/SURICATA/
+logfile=/opt/socengine/logs/suricata_$install_date.log
+install_home=/opt/socengine/SURICATA/
 touch $logfile
 mkdir $install_home
 
@@ -40,16 +40,41 @@ cat <<BAN
 ####################################################
 BAN
 apt-get install -y apt-utils 
-apt-get install -y suricata
-apt install -y python3-pip
-pip3 install pyyaml
-pip3 install https://github.com/OISF/suricata-update/archive/master.zip
-pip3 install --pre --upgrade suricata-update
+if (apt-get install -y suricata);
+then
+  echo "[SURICATA_OK]**************************************Suricata Successfully installed*****************"
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SURICATA_OK]**************************************Suricata Successfully installed*****************" >> $logfile
+else 
+  echo "[SURICATA_ERROR]**************************************Suricata unsuccessfully installed*****************"
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SURICATA_ERROR]**************************************Suricata unsuccessfully installed*****************" >> $logfile
+  exit 0
+fi 
+
+if (apt install -y python3-pip);
+then
+  
+  pip3 install pyyaml
+  pip3 install https://github.com/OISF/suricata-update/archive/master.zip
+  pip3 install --pre --upgrade suricata-update
+
+  cp ./suricata /etc/default/suricata
+  cp ./suricata.yaml /etc/suricata/suricata.yaml
+  cp ./suricata.rules /etc/suricata/rules/suracata.rules
+
+  echo "[SURICATA_OK]**************************************Python Pip, suricata archive  Successfully installed and updated*****************"
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SURICATA_OK]**************************************Python Pip, suricata archive  Successfully installed and updated*****************" >> $logfile
+
+else
+  echo "[SURICATA_OK]**************************************Python Pip, suricata archive  Successfully installed and updated*****************"
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SURICATA_OK]**************************************Python Pip, suricata archive  Successfully installed and updated*****************" >> $logfile
+  exit 0
+fi
 
 
-cp ./suricata /etc/default/suricata
-cp ./suricata.yaml /etc/suricata/suricata.yaml
-cp ./suricata.rules /etc/suricata/rules/suracata.rules
 
 
 
