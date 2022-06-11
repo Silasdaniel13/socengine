@@ -17,114 +17,140 @@
 #HOST=$1
 #PORT=${2:-443}
 #sourcelist=./sources.list
-conf=./systemd.txt
-mkdir /var/Openvas/
-touch /var/Openvas/log.txt
-redis_conf=./redis.conf
 
-####################################################
-#              Checking the source list            #
-####################################################
-  
-
-  apt-get update
-  apt-get upgrade -y
 
 
 cat <<BAN  
 ####################################################
-#            Installing Utils                      #
+#                Installing Openvas                #
 ####################################################
 BAN
-sudo apt install -y software-properties-common ;\
-sudo apt install -y cmake pkg-config libglib2.0-dev libgpgme-dev libgnutls28-dev uuid-dev libssh-gcrypt-dev \
-libldap2-dev doxygen graphviz libradcli-dev libhiredis-dev libpcap-dev bison libksba-dev libsnmp-dev \
-gcc-mingw-w64 heimdal-dev libpopt-dev xmltoman redis-server xsltproc libical-dev postgresql \
-postgresql-contrib postgresql-server-dev-all gnutls-bin nmap rpm nsis curl wget fakeroot gnupg \
-sshpass socat snmp smbclient libmicrohttpd-dev libxml2-dev python-polib gettext rsync xml-twig-tools \
-python3-paramiko python3-lxml python3-defusedxml python3-pip python3-psutil virtualenv vim git libunistring-dev;\
+
+install_date=$(date --rfc-3339=date)
+logfile=/opt/socengine/logs/openvas_$creating_date.log
+install_home=/opt/socengine/OPENVAS/
+#install_file=./openvas.sh
+
+conf=./systemd.txt
+redis_conf=./redis.conf
+gvm_home=/opt/gvm
+gvm_source=/opt/gvm/src
 
 
-sudo apt install -y texlive-latex-extra --no-install-recommends ;\
-sudo apt install -y texlive-fonts-recommended ;\
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - ;\
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list ;\
-sudo apt update ;\
-sudo apt -y install yarn
 
-#########################create user gvm
-echo 'export PATH="$PATH:/opt/gvm/bin:/opt/gvm/sbin:/opt/gvm/.local/bin"' | sudo tee -a /etc/profile.d/gvm.sh ;\
-sudo chmod 0755 /etc/profile.d/gvm.sh ;\
-source /etc/profile.d/gvm.sh ;\
-sudo bash -c 'cat << EOF > /etc/ld.so.conf.d/gvm.conf
-# gmv libs location
-/opt/gvm/lib
-EOF'
+
 
 ####################"Create install dir"
 sudo mkdir /opt/gvm ;\
-sudo chmod 777 /opt/gvm
 sudo adduser gvm --disabled-password --home /opt/gvm/ --no-create-home --gecos '' ;\
 sudo usermod -aG redis gvm  # This is for ospd-openvas can connect to redis.sock.. 
 sudo chown gvm:gvm /opt/gvm/ ;\
 
 sudo su - gvm << CMD
-mkdir /opt/gvm/src ;\
+
+mkdir src 
+mkdir /opt/gvm/var
+mkdir /opt/gvm/var/run
 cd /opt/gvm/src ;\
 export PKG_CONFIG_PATH=/opt/gvm/lib/pkgconfig:$PKG_CONFIG_PATH
 
+
+
+
+
 #####################Downloading the sources to build
 
-git clone -b gvm-libs-11.0 --single-branch  https://github.com/greenbone/gvm-libs.git ;\
+
+
+echo "**************************************Downloadding GVM AND OPENVAS SOURCE FILE*****************"
+ 
+ echo $(date --rfc-3339=seconds) >> $logfile
+ echo "**************************************Downloadding GVM AND OPENVAS SOURCE FILE*****************" >> $logfile
+
+
+if (git clone -b gvm-libs-11.0 --single-branch  https://github.com/greenbone/gvm-libs.git ;\
 git clone -b openvas-7.0 --single-branch https://github.com/greenbone/openvas.git ;\
 git clone -b gvmd-9.0 --single-branch https://github.com/greenbone/gvmd.git ;\
 git clone -b master --single-branch https://github.com/greenbone/openvas-smb.git ;\
 git clone -b gsa-9.0 --single-branch https://github.com/greenbone/gsa.git ;\
 git clone -b ospd-openvas-1.0 --single-branch  https://github.com/greenbone/ospd-openvas.git ;\
-git clone -b ospd-2.0 --single-branch https://github.com/greenbone/ospd.git
+git clone -b ospd-2.0 --single-branch https://github.com/greenbone/ospd.git );
+
+then
+ echo "**************************************Downloading GVM AND OPENVAS SOURCE FILE Successful*****************"
+ 
+ echo $(date --rfc-3339=seconds) >> $logfile
+ echo "**************************************Downloading GVM AND OPENVAS SOURCE FILE Successful*****************" >> $logfile
+ 
+else
+	echo "**************************************Downloadding GVM AND OPENVAS SOURCE FILE Unsuccessful*****************"
+ 
+ echo $(date --rfc-3339=seconds) >> $logfile
+ echo "**************************************Downloadding GVM AND OPENVAS SOURCE FILE Unsuccessful*****************" >> $logfile
+
+fi
+
 
 ######################install gvm-libs
 
-cd /opt/gvm/src/gvm-libs ;\
+cd gvm-libs ;\
  export PKG_CONFIG_PATH=/opt/gvm/lib/pkgconfig:$PKG_CONFIG_PATH ;\
  mkdir build ;\
  cd build ;\
  cmake -DCMAKE_INSTALL_PREFIX=/opt/gvm .. ;\
  make ;\
  make doc ;\
- make install ;\
- cd /opt/gvm/src
+ if (make install );
+ then
+ 	echo "**************************************gvm-libs successfully compiled*****************"
+ 
+ 	echo $(date --rfc-3339=seconds) >> $logfile
+ 	echo "**************************************gvm-libs successfully compiled*****************" >> $logfile
+
+ fi 
+ cd $gvm_source
 
 ########################config and build openvas-smb
 
-cd /opt/gvm/src/openvas-smb ;\
+cd openvas-smb ;\
  export PKG_CONFIG_PATH=/opt/gvm/lib/pkgconfig:$PKG_CONFIG_PATH ;\
  mkdir build ;\
  cd build/ ;\
  cmake -DCMAKE_INSTALL_PREFIX=/opt/gvm .. ;\
  make ;\
- make install ;\
- cd /opt/gvm/src
+ if (make install);
+ then
+ 	echo "**************************************openvas-smb successfully compiled*****************"
+ 
+ 	echo $(date --rfc-3339=seconds) >> $logfile
+ 	echo "**************************************openvas-smb successfully compiled*****************" >> $logfile
+
+ fi 
+ cd $gvm_source
 
 
-###################config and build scanner
+###################config and build openvas scanner
 
-cd /opt/gvm/src/openvas ;\
+cd openvas ;\
  export PKG_CONFIG_PATH=/opt/gvm/lib/pkgconfig:$PKG_CONFIG_PATH ;\
  mkdir build ;\
  cd build/ ;\
  cmake -DCMAKE_INSTALL_PREFIX=/opt/gvm .. ;\
  make ;\
  make doc ;\
- make install ;\
- cd /opt/gvm/src
+ if (make install);
+ then
+ 	echo "**************************************openvas scanner successfully compiled*****************"
+ 
+ 	echo $(date --rfc-3339=seconds) >> $logfile
+ 	echo "**************************************openvas scanner successfully compiled*****************" >> $logfile
 
-
+ fi 
+ cd $gvm_source
 CMD
-
-
 ################## Fix redis for default openvas install
 
+sudo su << CMD
 
 export LC_ALL="C" ;\
 /sbin/ldconfig ;\
@@ -176,7 +202,9 @@ echo "Defaults        secure_path=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/us
 echo "gvm ALL = NOPASSWD: /opt/gvm/sbin/openvas" >> /etc/sudoers
 echo "gvm ALL = NOPASSWD: /opt/gvm/sbin/gsad" >> /etc/sudoers
 
-su gvm  << CMD
+CMD
+
+sudo su  gvm << CMD
 
 ###############################update nvt
 
@@ -187,7 +215,7 @@ openvas -u
 #####config and build manager
 
 
-cd /opt/gvm/src/gvmd ;\
+cd gvmd ;\
  export PKG_CONFIG_PATH=/opt/gvm/lib/pkgconfig:$PKG_CONFIG_PATH ;\
  sed -i 's/POSTGRES=0/POSTGRES=1/g' tools/gvm-portnames-update.in ;\
  mkdir build ;\
@@ -197,15 +225,11 @@ cd /opt/gvm/src/gvmd ;\
  make doc ;\
  make install ;\
  cd /opt/gvm/src
-
-
 CMD
-
-
 ################Configure PostgreSQL
+su  << CMD
 
-
-sudo -u postgres bash  << CMD
+sudo -u postgres bash
 export LC_ALL="C"
 createuser -DRS gvm
 createdb -O gvm gvmd
@@ -215,10 +239,11 @@ create role dba with superuser noinherit;
 grant dba to gvm;
 create extension "uuid-ossp";
 exit
+exit
 CMD
-
 ######fix certs
 su gvm << CMD
+
 gvm-manage-certs -a
 
 ##########Create admin user
@@ -268,12 +293,10 @@ pip3 install . ;\
 cd /opt/gvm/src
 
 CMD
-
-
-
 ################creating startupscripts
 
-ls 
+su << CMD
+
 
 cat << EOF > /etc/systemd/system/gvmd.service
 [Unit]
@@ -366,17 +389,13 @@ systemctl status gvmd
 systemctl status gsad
 systemctl status ospd-openvas
 ##########################Modify Default Scanners###############""""
-su gvm << CMD
-systemctl start gvmd ;\
-systemctl start gsad ;\
-systemctl start ospd-openvas
+CMD
 
-systemctl status gvmd
-systemctl status gsad
-systemctl status ospd-openvas
+
+su gvm << CMD
+
 gvmd --get-scanners
 gvmd --modify-scanner=08b69003-5fc2-4037-a479-93b440211c73 --scanner-host=/opt/gvm/var/run/ospd.sock
-CMD
 
 cat <<BAN  
 #################################################### 
@@ -387,4 +406,6 @@ cat <<BAN
 
 ####################################################
 BAN
+CMD
 
+exit 0
