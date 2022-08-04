@@ -29,7 +29,7 @@ echo "*****************User Successfully Added******************** "
 ##Adding current user to gvm group
 sudo usermod -aG gvm $USER
 
-su $USER
+
 
 
 ## Setting the path 
