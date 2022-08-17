@@ -18,6 +18,22 @@ cat <<BAN
 ####################################################
 BAN
 
+## Setting the path 
+export PATH=$PATH:/usr/local/sbin
+
+#####Choosing an Install Prefix
+export INSTALL_PREFIX=/usr/local
+
+###Creating a Source and Building Repository
+export SOURCE_DIR=$HOME/source
+
+
+export BUILD_DIR=$HOME/build
+
+
+
+export INSTALL_DIR=$HOME/install
+
 #####Required tools to install gvm-tools
 
 sudo apt install -y \

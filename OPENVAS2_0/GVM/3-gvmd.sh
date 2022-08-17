@@ -18,6 +18,27 @@ cat <<BAN
 #      Download sources and Build gvmd             #
 ####################################################
 BAN
+
+## Setting the path 
+export PATH=$PATH:/usr/local/sbin
+
+#####Choosing an Install Prefix
+export INSTALL_PREFIX=/usr/local
+
+###Creating a Source and Building Repository
+export SOURCE_DIR=$HOME/source
+
+
+export BUILD_DIR=$HOME/build
+
+
+
+export INSTALL_DIR=$HOME/install
+
+
+##Setting GVM Version
+export GVM_VERSION=22.4.0
+
 export GVMD_VERSION=$GVM_VERSION
 
 #######Download and install required librairies and tolls for GVMD BUILDING

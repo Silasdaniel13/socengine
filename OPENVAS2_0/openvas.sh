@@ -30,7 +30,7 @@ install_date=$(date --rfc-3339=date)
 logfile=/opt/socengine/logs/openvas_$creating_date.log
 install_home=/opt/socengine/OPENVAS/
 #install_file=./openvas.sh
-DIRECTORY=$(pwd)
+Directory=`pwd`
 conf=./systemd.txt
 redis_conf=./redis.conf
 gvm_home=/opt/gvm

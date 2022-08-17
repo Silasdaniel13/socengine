@@ -30,7 +30,11 @@ echo "*****************User Successfully Added******************** "
 sudo usermod -aG gvm $USER
 
 
+#####Setting Env Variables
 
+
+
+cat << EOF >> ~/.bash_profile
 
 ## Setting the path 
 export PATH=$PATH:/usr/local/sbin
@@ -40,16 +44,29 @@ export INSTALL_PREFIX=/usr/local
 
 ###Creating a Source and Building Repository
 export SOURCE_DIR=$HOME/source
-mkdir -p $SOURCE_DIR
 
 
 export BUILD_DIR=$HOME/build
-mkdir -p $BUILD_DIR
+
 
 
 export INSTALL_DIR=$HOME/install
-mkdir -p $INSTALL_DIR
 
+
+##Setting GVM Version
+export GVM_VERSION=22.4.0
+
+
+EOF
+
+source ~/.bash_profile
+
+mkdir -p $SOURCE_DIR
+
+
+mkdir -p $BUILD_DIR
+
+mkdir -p $INSTALL_DIR
 
 #######Installing common build dependencies
 sudo apt update
@@ -65,8 +82,5 @@ sudo apt install --no-install-recommends --assume-yes \
 ##Importing the Greenbone Signing Key
 curl -f -L https://www.greenbone.net/GBCommunitySigningKey.asc -o /tmp/GBCommunitySigningKey.asc
 gpg --import /tmp/GBCommunitySigningKey.asc
-
-##Setting GVM Version
-export GVM_VERSION=22.4.0
 
 

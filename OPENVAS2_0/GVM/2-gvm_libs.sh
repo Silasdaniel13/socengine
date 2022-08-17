@@ -18,7 +18,25 @@ cat <<BAN
 #      Download sources and Build Gvm-libs         #
 ####################################################
 BAN
+## Setting the path 
+export PATH=$PATH:/usr/local/sbin
 
+#####Choosing an Install Prefix
+export INSTALL_PREFIX=/usr/local
+
+###Creating a Source and Building Repository
+export SOURCE_DIR=$HOME/source
+
+
+export BUILD_DIR=$HOME/build
+
+
+
+export INSTALL_DIR=$HOME/install
+
+
+##Setting GVM Version
+export GVM_VERSION=22.4.0
 export GVM_LIBS_VERSION=$GVM_VERSION
 
 sudo apt install -y libglib2.0-dev libgpgme-dev libgnutls28-dev uuid-dev \
