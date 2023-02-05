@@ -154,7 +154,7 @@ cat <<BAN
 BAN
 
 
-apt-get install -y metricbeat
+sudo apt-get install -y metricbeat
 
 
 ######################To set up the system module and start collecting system metrics

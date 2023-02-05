@@ -139,9 +139,8 @@ sudo cp -r /tmp/openvas-gnupg/* $OPENVAS_GNUPG_HOME/
 sudo chown -R gvm:gvm $OPENVAS_GNUPG_HOME
 
 ###Setting up sudo for Scanning
-sudo visudo
+#sudo visudo
 
-...
 
 # allow users of the gvm group run openvas
-%gvm ALL = NOPASSWD: /usr/local/sbin/openvas
+sudo echo "%gvm ALL = NOPASSWD: /usr/local/sbin/openvas" >> /etc/sudoers

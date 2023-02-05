@@ -41,6 +41,7 @@ create role dba with superuser noinherit;
 grant dba to gvm;
 
 exit
+
 exit
 
 ####

@@ -170,7 +170,10 @@ then
   echo $(date --rfc-3339=seconds) >> $logfile
   echo "[SETUP_OK]:  Elasticsearch Users Credentials  file creating Successful "  >> $logfile
 else
-
+	 echo "[SETUP_ERROR]:  elasticsearch.yml file editing and configuring FAILED  " 
+  echo $(date --rfc-3339=seconds) >> $logfile
+  echo "[SETUP_ERROR]:  elasticsearch.yml file editing and configuring FAILED "  >> $logfile
+  exit 0
 fi
 
 

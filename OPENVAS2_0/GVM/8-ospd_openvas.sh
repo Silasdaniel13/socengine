@@ -70,7 +70,11 @@ tar -C $SOURCE_DIR -xvzf $SOURCE_DIR/ospd-openvas-$OSPD_OPENVAS_VERSION.tar.gz
 
 cd $SOURCE_DIR/ospd-openvas-$OSPD_OPENVAS_VERSION
 
-python3 -m pip install . --prefix=$INSTALL_PREFIX --root=$INSTALL_DIR --no-warn-script-location
+pip3 install --upgrade pip
+
+python3 -m pip install . --user --root=$INSTALL_DIR --no-warn-script-location
+
+
 
 sudo cp -rv $INSTALL_DIR/* /
 

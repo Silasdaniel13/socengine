@@ -64,7 +64,7 @@ tar -C $SOURCE_DIR -xvzf $SOURCE_DIR/notus-scanner-$NOTUS_VERSION.tar.gz
 
 cd $SOURCE_DIR/notus-scanner-$NOTUS_VERSION
 
-python3 -m pip install . --prefix=$INSTALL_PREFIX --root=$INSTALL_DIR --no-warn-script-location
+python3 -m pip install . --user --root=$INSTALL_DIR --no-warn-script-location
 
 sudo cp -rv $INSTALL_DIR/* /
 

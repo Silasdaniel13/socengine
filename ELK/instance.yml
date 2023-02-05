@@ -1,7 +1,7 @@
 instances:
   - name: 'elastic'
-    dns: [ 'openvas-siem' ]
+    dns: [ 'socengine' ]
   - name: 'logstash'
-    dns: [ 'openvas-siem' ]
+    dns: [ 'socengine' ]
   - name: 'my-kibana'
-    dns: [ 'openvas-siem' ]
+    dns: [ 'socengine' ]

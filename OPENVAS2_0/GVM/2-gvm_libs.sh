@@ -41,7 +41,7 @@ export GVM_LIBS_VERSION=$GVM_VERSION
 
 sudo apt install -y libglib2.0-dev libgpgme-dev libgnutls28-dev uuid-dev \
 libssh-gcrypt-dev libhiredis-dev libxml2-dev libpcap-dev libnet1-dev libpaho-mqtt-dev \
-libldap2-dev libradcli-dev cmake
+libldap2-dev libradcli-dev cmake  
 
 curl -f -L https://github.com/greenbone/gvm-libs/archive/refs/tags/v$GVM_LIBS_VERSION.tar.gz -o $SOURCE_DIR/gvm-libs-$GVM_LIBS_VERSION.tar.gz
 curl -f -L https://github.com/greenbone/gvm-libs/releases/download/v$GVM_LIBS_VERSION/gvm-libs-$GVM_LIBS_VERSION.tar.gz.asc -o $SOURCE_DIR/gvm-libs-$GVM_LIBS_VERSION.tar.gz.asc

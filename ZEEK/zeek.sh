@@ -25,7 +25,7 @@ else
 	mkdir $install_home
 fi
 
-debian_version=Debian_10
+debian_version=Debian_11
 
 
 ####################################################
@@ -39,7 +39,7 @@ cat <<BAN
 ####################################################
 BAN
 
-if (sudo apt-get install -y cmake make gcc g++ flex bison libpcap-dev libssl-dev python3 python3-dev swig zlib1g-dev python3-git python3-semantic-version);
+if (sudo apt-get install -y cmake curl gnupg2 make gcc g++ flex bison libpcap-dev libssl-dev python3 python3-dev swig zlib1g-dev python3-git python3-semantic-version);
 
 then 
 
@@ -63,9 +63,10 @@ cat <<BAN
 #          Installing Zeek Manually                #
 ####################################################
 BAN
+####Adding zeek repository 
 
-echo 'deb http://download.opensuse.org/repositories/security:/zeek/Debian_10/ /' | sudo tee /etc/apt/sources.list.d/security:zeek.list
-curl -fsSL https://download.opensuse.org/repositories/security:zeek/Debian_10/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg > /dev/null
+sudo echo 'deb http://download.opensuse.org/repositories/security:/zeek/Debian_11/ /' | sudo tee /etc/apt/sources.list.d/zeek.list
+curl -fsSL https://download.opensuse.org/repositories/security:zeek/Debian_11/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg
 
 echo "**************************************Zeek files  authentication key successfully downloaded*****************"
  
@@ -74,12 +75,17 @@ echo "**************************************Zeek files  authentication key succe
 
 sudo apt update
 
+sudo apt-cache policy zeek
 
-if (sudo apt install zeek-lts);
+
+if (sudo apt install -y zeek);
 then
 	echo "**************************************Zeek-lts successfully installed from apt package manager*****************"
   echo $(date --rfc-3339=seconds) >> $logfile
   echo "**************************************Zeek-lts successfully installed from apt package manager*****************" >> $logfile
+  echo "export PATH=$PATH:/opt/zeek/bin" | sudo tee /etc/profile.d/zeek.sh
+
+  source /etc/profile.d/zeek.sh
 else
   echo "**************************************Zeek-lts could not be successfully installed from apt package manager*****************"
   echo $(date --rfc-3339=seconds) >> $logfile

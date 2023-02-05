@@ -1,0 +1,56 @@
+#Ce fichier est disposé à lister toutes les données dont on aura besoin pour faire fonctionner les différents services de façon automatique
+
+[Zeek]
+host=
+interface=
+#edit le script postinstall de Zeek pour actuellement demander le host name et le nom de l'interface en option. 
+[GRR]
+host=
+password_db_user=
+
+#Tester le déploiement et faire la video
+
+[SIFT]
+host=
+
+#Tester le déploiement et faire la video
+
+
+[ELK]
+host=
+
+#Reprendre le process
+#Tester le déploiement et faire la video
+
+
+[Suricata]
+host=
+interface=
+
+#Tester l'exécution du script et ensuite faire la vidéo
+
+[Openvas]
+host=
+
+##Modulariser le script d'installation et mettre des echos après chaque commande pour faciliter le débogage 
+
+[UVDESK]
+host= 
+dbuser_name=
+dbuser_pass=
+web_user=
+web_user_pass=
+
+#Tester à nouveau l'exécution du script et faire la vidéo 
+
+[ServerNameResolution]
+ip	name
+
+Structure du power point
+
+1- Point sur les modifications suggérées à la rencontre précédente
+2- Présentation des travaux effectués (Objectifs, démarches, résulatats)
+3- Planification de la semaine d'après
+
+
+

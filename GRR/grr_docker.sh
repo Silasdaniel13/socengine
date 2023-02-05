@@ -1,18 +1,7 @@
 #!/bin/bash
 #
-# grr.sh
+# uvdesk.sh
 #
-# 
-# Authors:
-#  Silas VIGAN <sisedaro05@yahoo.fr>
-#
-# 
-
-#VERSION=0.0.1
-#HOST=$1
-#PORT=${2:-443}
-#sourcelist=./sources.list
-#conf=./uvdesk.conf
 # This script is used to Download and install Docker engne on Debian 11
 #  
 # 
@@ -59,14 +48,5 @@ sudo apt-get update
 
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
-#
-#
-sudo groupadd docker
-
-##
-
-sudo usermod -aG docker ${USER}
-
-#
-
-docker run hello-world
+#Run Docker GRR SERVER
+ocker run   --name grr-server   -e EXTERNAL_HOSTNAME=socengine   -e ADMIN_PASSWORD=admin   -p 0.0.0.0:8000:8000 -p 0.0.0.0:8080:8080   grrdocker/grr:v3.4.6.0 &
